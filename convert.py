@@ -61,12 +61,14 @@ def main():
     colors = [""] * n
     land_mask = [False] * n
     sky_mask = [False] * n
+    lum_map = [0.0] * n
 
     for y in range(rows):
         for x in range(COLS):
             r, g, b = px[x, y]
             i = y * COLS + x
             l = lum(r, g, b)
+            lum_map[i] = l
             land = is_land(r, g, b)
             bright_sky = (not land) and l > 120 and y < rows * 0.5
             if land:
@@ -89,7 +91,7 @@ def main():
                 whiteness = min(r, g, b) / 255.0
                 shade = (whiteness - 0.60) / 0.30
             else:
-                shade = (base ** 2.4) * 0.4
+                shade = (base ** 1.7) * 0.6   # ocean ripple (dark water is interactive)
             # ordered dither to avoid flat banding in the thinned regions
             shade += (BAYER[y % 4][x % 4] / 16.0 - 0.5) * 0.05
             shade = 0.0 if shade < 0 else 1.0 if shade > 1 else shade
@@ -154,6 +156,16 @@ def main():
             regions[i] = "outside"
             sky_count += 1
 
+    # ---- favorites -> only the DARK parts of the water (deep-blue cells) ----
+    HORIZON = int(rows * 0.5)
+    FAV_MAX_LUM = 62   # cells darker than this count as deep water
+    fav_count = 0
+    for i in range(n):
+        if (regions[i] is None and chars[i] != " "
+                and (i // COLS) >= HORIZON and lum_map[i] < FAV_MAX_LUM):
+            regions[i] = "favorites"
+            fav_count += 1
+
     data = {
         "cols": COLS,
         "rows": rows,
@@ -167,8 +179,8 @@ def main():
         f.write(";\n")
 
     print("grid %dx%d (%d cells)" % (COLS, rows, n))
-    print("about (island): %d  writing (islet): %d  outside (sky): %d"
-          % (about_ct, writing_ct, sky_count))
+    print("about: %d  writing: %d  outside: %d  favorites: %d"
+          % (about_ct, writing_ct, sky_count, fav_count))
     print("wrote %s (%.2f MB)" % (OUT, len(json.dumps(data)) / 1048576))
 
 

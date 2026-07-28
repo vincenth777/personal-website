@@ -47,7 +47,7 @@ for i, p in enumerate(paras):
 body = "\n".join(lines)
 
 panel = (
-    '  <div class="panel article" id="panel-writing">\n'
+    '  <div class="panel article" id="panel-essay">\n'
     '    <div class="inner">\n'
     '      <div class="label">Kāohikaipu &middot; Writing</div>\n'
     '      <h1>' + esc(TITLE) + '</h1>\n'
@@ -61,10 +61,10 @@ panel = (
 # ---- rewrite only the writing panel block ----
 src = open(HTML, encoding="utf-8").read()
 new_src, n = re.subn(
-    r'  <div class="panel[^"]*" id="panel-writing">.*?</div>\s*</div>',
+    r'  <div class="panel[^"]*" id="panel-essay">.*?</div>\s*</div>',
     lambda m: panel,
     src, count=1, flags=re.S,
 )
-assert n == 1, "writing panel block not found"
+assert n == 1, "essay panel block not found"
 open(HTML, "w", encoding="utf-8").write(new_src)
 print("embedded revised essay (%d paragraphs) into %s" % (len(paras), HTML))

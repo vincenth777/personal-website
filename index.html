@@ -139,6 +139,9 @@
       margin: 0 0 0.5em 1.5em; color: rgba(255,255,255,0.92);
     }
     .panel.article .back { margin-top: 3em; }
+    #panel-essay { z-index: 110; }  /* opens on top of the writing list */
+    .entries li[data-open] { cursor: pointer; }
+    .entries li[data-open]:hover span:first-child { color: #fff; border-bottom: 1px solid #fff; }
 
     /* ---------- Outside gallery ---------- */
     #panel-outside .inner {
@@ -156,6 +159,26 @@
       margin-top: 0.6em; font-size: 0.72em; letter-spacing: 0.1em;
       text-transform: uppercase; color: rgba(255,255,255,0.42);
     }
+
+    /* ---------- Favorites ---------- */
+    #panel-favorites .inner {
+      max-width: 40rem; max-height: 100%; overflow-y: auto; padding-right: 0.6rem;
+    }
+    #panel-favorites .inner::-webkit-scrollbar { width: 8px; }
+    #panel-favorites .inner::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    #panel-favorites h2 {
+      font-size: 0.8em; font-weight: 700; letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.5); margin: 2.2em 0 0.8em;
+    }
+    #panel-favorites h2:first-of-type { margin-top: 1.2em; }
+    .faves { list-style: none; }
+    .faves li {
+      display: flex; justify-content: space-between; gap: 1.5em;
+      padding: 0.45em 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .faves li:last-child { border-bottom: none; }
+    .faves .t { color: rgba(255,255,255,0.82); }
+    .faves .a { color: rgba(255,255,255,0.4); white-space: nowrap; text-align: right; }
   </style>
 </head>
 <body>
@@ -171,7 +194,7 @@
     </div>
   </div>
 
-  <div id="hint">hover &amp; click the island &middot; the rock &middot; the clouds</div>
+  <div id="hint">hover &amp; click the island &middot; the rock &middot; the clouds &middot; the water</div>
 
   <div id="quote">
     <p>Despite his new eyes, man was still rooted in matter, his soul spun into it and subordinated to its blind laws. And yet he could see matter as a stranger, compare himself to all phenomena, see through and locate his vital processes. He comes to nature as an unbidden guest, in vain extending his arms to beg conciliation with his maker: Nature answers no more, it performed a miracle with man, but later did not know him. He has lost his right of residence in the universe, has eaten from the Tree of Knowledge and been expelled from Paradise. He is mighty in the near world, but curses his might as purchased with his harmony of soul, his innocence, his inner peace in life&rsquo;s embrace.</p>
@@ -183,6 +206,9 @@
     <div class="inner">
       <div class="label">Mānana &middot; About</div>
       <h1>Vince Huang</h1>
+      <p>Ex-YC founder &amp; Stanford CS + Philosophy alum. Currently building code environments for RL at Mercor</p>
+      <p>I&rsquo;m passionate about transhumanism, philosophy of mind, and striving in vain to understand the noumenon.</p>
+      <p>I surf, scuba dive, and snowboard.</p>
       <div class="links">
         <a href="https://www.linkedin.com/in/vincentjh/" target="_blank" rel="noopener noreferrer">linkedin</a>
         <a href="https://x.com/vincejhuang" target="_blank" rel="noopener noreferrer">X</a>
@@ -192,7 +218,21 @@
     </div>
   </div>
 
-  <div class="panel article" id="panel-writing">
+  <div class="panel" id="panel-writing">
+    <div class="inner">
+      <div class="label">Kāohikaipu &middot; Writing</div>
+      <h1>Writing</h1>
+      <ul class="entries">
+        <li data-open="essay">
+          <span>Moral Philosophy is Only as Guilty of Reflective Equilibrium as Math</span>
+          <span class="date">May 2024</span>
+        </li>
+      </ul>
+      <span class="back" data-back>&larr; back</span>
+    </div>
+  </div>
+
+  <div class="panel article" id="panel-essay">
     <div class="inner">
       <div class="label">Kāohikaipu &middot; Writing</div>
       <h1>Moral Philosophy is Only as Guilty of Reflective Equilibrium as Math</h1>
@@ -238,6 +278,48 @@
     </div>
   </div>
 
+  <div class="panel" id="panel-favorites">
+    <div class="inner">
+      <div class="label">The Water &middot; Favorites</div>
+      <h1>Favorites</h1>
+
+      <h2>Books</h2>
+      <ul class="faves">
+        <li><span class="t">Blood Meridian</span><span class="a">Cormac McCarthy</span></li>
+        <li><span class="t">The Methods of Ethics</span><span class="a">Henry Sidgwick</span></li>
+        <li><span class="t">Barbarian Days</span><span class="a">William Finnegan</span></li>
+        <li><span class="t">The Precipice</span><span class="a">Toby Ord</span></li>
+        <li><span class="t">Meditations on First Philosophy</span><span class="a">René Descartes</span></li>
+        <li><span class="t">The Doors of Perception &amp; Heaven and Hell</span><span class="a">Aldous Huxley</span></li>
+        <li><span class="t">Reasons and Persons</span><span class="a">Derek Parfit</span></li>
+      </ul>
+
+      <h2>Essays</h2>
+      <ul class="faves">
+        <li><span class="t">The Last Messiah</span><span class="a">Peter Wessel Zapffe</span></li>
+        <li><span class="t">Transhumanist Values</span><span class="a">Nick Bostrom</span></li>
+        <li><span class="t">Famine, Affluence, and Morality</span><span class="a">Peter Singer</span></li>
+        <li><span class="t">The Paralysis Argument</span><span class="a">William MacAskill</span></li>
+        <li><span class="t">The Vulnerable World Hypothesis</span><span class="a">Nick Bostrom</span></li>
+        <li><span class="t">Meditations on Moloch</span><span class="a">Scott Alexander</span></li>
+        <li><span class="t">In Continued Defense of Effective Altruism</span><span class="a">Scott Alexander</span></li>
+        <li><span class="t">Raikoth: Symbolic Beads</span><span class="a">Scott Alexander</span></li>
+        <li><span class="t">The Fable of the Dragon-Tyrant</span><span class="a">Nick Bostrom</span></li>
+      </ul>
+
+      <h2>Movies</h2>
+      <ul class="faves">
+        <li><span class="t">Spring, Summer, Fall, Winter, and Spring</span></li>
+        <li><span class="t">The Florida Project</span></li>
+        <li><span class="t">Gladiator</span></li>
+        <li><span class="t">Before Sunrise</span></li>
+        <li><span class="t">Whiplash</span></li>
+      </ul>
+
+      <span class="back" data-back>&larr; back</span>
+    </div>
+  </div>
+
   <script src="ascii-data.js"></script>
   <script>
   (function () {
@@ -270,8 +352,8 @@
     }
 
     var pre = document.getElementById("ascii");
-    var spanEls = { about: [], writing: [], outside: [] };
-    var LABELS = { about: "ABOUT ", writing: "WRITING ", outside: "OUTSIDE " };
+    var spanEls = { about: [], writing: [], outside: [], favorites: [] };
+    var LABELS = { about: "ABOUT ", writing: "WRITING ", outside: "OUTSIDE ", favorites: "FAVORITES " };
 
     (function render() {
       var spanRows = buildSpans();
@@ -337,17 +419,35 @@
     function onClick(e) { openPanel(e.currentTarget.dataset.region); }
 
     // ---------- panels ----------
-    function openPanel(region) {
-      var p = document.getElementById("panel-" + region);
+    function openPanel(name) {
+      var p = document.getElementById("panel-" + name);
       if (p) p.classList.add("open");
     }
-    function closePanels() {
+    function closeTopmost() {
       var ps = document.querySelectorAll(".panel.open");
-      for (var i = 0; i < ps.length; i++) ps[i].classList.remove("open");
+      var top = null, z = -1;
+      for (var i = 0; i < ps.length; i++) {
+        var pz = parseInt(getComputedStyle(ps[i]).zIndex, 10) || 0;
+        if (pz >= z) { z = pz; top = ps[i]; }
+      }
+      if (top) top.classList.remove("open");
     }
+    // "back" closes only its own panel (essay -> back reveals the writing list)
     var backs = document.querySelectorAll("[data-back]");
-    for (var b = 0; b < backs.length; b++) backs[b].addEventListener("click", closePanels);
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePanels(); });
+    for (var b = 0; b < backs.length; b++) {
+      backs[b].addEventListener("click", function (e) {
+        var panel = e.currentTarget.closest(".panel");
+        if (panel) panel.classList.remove("open");
+      });
+    }
+    // a titled entry opens the panel named in its data-open
+    var opens = document.querySelectorAll("[data-open]");
+    for (var o = 0; o < opens.length; o++) {
+      opens[o].addEventListener("click", function (e) {
+        openPanel(e.currentTarget.dataset.open);
+      });
+    }
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeTopmost(); });
   })();
   </script>
 </body>
