@@ -1,0 +1,10 @@
+# OS / editor
+.DS_Store
+.cursor/
+
+# Source docs (may carry hidden metadata / revision history)
+*.docx
+
+# Original photos (retain EXIF / GPS); only the EXIF-stripped *_web.jpg are published
+IMG_7329.jpeg
+VincentSelinaDrone1.jpg

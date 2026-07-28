@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+      overflow: hidden;
+    }
+
+    /* ---------- Hero (ASCII scene) ---------- */
+    #scene {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #ascii {
+      font-size: min(0.6vw, 1.45vh);
+      line-height: 1.15;
+      letter-spacing: 0;
+      white-space: pre;
+      user-select: none;
+    }
+    #ascii .row { display: block; height: 1.15em; }
+    #ascii span.hot { cursor: pointer; }
+
+    /* ---------- Name box ---------- */
+    #namebox {
+      position: fixed;
+      top: 4vh;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      font-size: clamp(11px, 1.4vw, 15px);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      pointer-events: none;
+    }
+    #namebox .box { position: relative; border: 1px solid #fff; padding: 10px 22px; white-space: nowrap; }
+    #namebox .c { position: absolute; background: #000; padding: 0 3px; line-height: 1; }
+    #namebox .tl { top: -0.7em; left: -0.5em; }
+    #namebox .tr { top: -0.7em; right: -0.5em; }
+    #namebox .bl { bottom: -0.7em; left: -0.5em; }
+    #namebox .br { bottom: -0.7em; right: -0.5em; }
+
+    /* ---------- Hint ---------- */
+    #hint {
+      position: fixed; bottom: 2vh; left: 2vw; z-index: 50;
+      font-size: clamp(9px, 1vw, 11px); letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(255,255,255,0.32); pointer-events: none;
+    }
+
+    /* ---------- Quote ---------- */
+    #quote {
+      position: fixed; right: 0; bottom: 0; z-index: 50;
+      max-width: min(94vw, 26rem); text-align: right;
+      padding: 3.6em 2vw 2.6vh 3.6em;
+      font-size: clamp(8px, 0.82vw, 11px); line-height: 1.55; letter-spacing: 0.02em;
+      color: rgba(255,255,255,0.42);
+      /* soft vignette: dims the water under the text, feathers into the scene */
+      background: radial-gradient(155% 165% at 100% 100%,
+        rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.9) 52%, rgba(0,0,0,0) 100%);
+      pointer-events: none;
+    }
+    #quote p { margin-bottom: 0.7em; }
+    #quote p:last-child { margin-bottom: 0; }
+    #quote .attr { color: rgba(255,255,255,0.6); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 0.4em; }
+    @media (max-width: 640px) { #quote { display: none; } }
+
+    /* ---------- Content panels ---------- */
+    .panel {
+      position: fixed; inset: 0; z-index: 100; background: #000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 6vh 6vw; opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
+    }
+    .panel.open { opacity: 1; visibility: visible; }
+    .panel .inner {
+      max-width: 34rem; width: 100%; text-transform: uppercase;
+      font-size: clamp(12px, 1.05vw, 14px); line-height: 1.7;
+    }
+    .panel h1 { font-size: clamp(18px, 2vw, 22px); font-weight: 700; margin-bottom: 1.4em; letter-spacing: 0.02em; }
+    .panel p { margin-bottom: 1em; color: rgba(255,255,255,0.85); }
+    .panel .label { color: rgba(255,255,255,0.4); font-size: 0.85em; letter-spacing: 0.14em; margin-bottom: 2.2em; }
+    .entries { list-style: none; }
+    .entries li {
+      display: flex; justify-content: space-between; gap: 1.5em;
+      padding: 0.75em 0; border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    .entries li:last-child { border-bottom: none; }
+    .entries .date { color: rgba(255,255,255,0.4); white-space: nowrap; }
+    .entries a { color: rgba(255,255,255,0.85); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.25); }
+    .entries a:hover { color: #fff; border-color: #fff; }
+    .links { display: flex; gap: 1.2em; margin-top: 1.6em; }
+    .links a, .back {
+      color: rgba(255,255,255,0.6); text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.25); cursor: pointer;
+    }
+    .links a:hover, .back:hover { color: #fff; border-color: #fff; }
+    .back { display: inline-block; margin-top: 2.6em; font-size: 0.85em; }
+
+    /* ---------- Essay / article panel ---------- */
+    .panel.article { align-items: flex-start; }
+    .panel .label { text-transform: uppercase; }
+    .panel.article .inner {
+      max-width: 42rem; text-align: left; text-transform: none;
+      max-height: 100%; overflow-y: auto; padding-right: 0.6rem;
+      font-size: clamp(12px, 1.02vw, 14px); line-height: 1.75;
+    }
+    .panel.article .inner::-webkit-scrollbar { width: 8px; }
+    .panel.article .inner::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    .panel.article h1 { font-size: clamp(19px, 2.1vw, 25px); line-height: 1.3; margin-bottom: 0.5em; }
+    .panel.article .meta {
+      text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.76em;
+      color: rgba(255,255,255,0.4); margin-bottom: 2.4em;
+    }
+    .panel.article h2 {
+      text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.9em; font-weight: 700;
+      color: rgba(255,255,255,0.6); margin: 2.4em 0 0.9em;
+    }
+    .panel.article p { margin-bottom: 1.15em; color: rgba(255,255,255,0.82); }
+    .panel.article blockquote {
+      margin: 0 0 1.3em; padding-left: 1.1em;
+      border-left: 2px solid rgba(255,255,255,0.28); color: rgba(255,255,255,0.68);
+    }
+    .panel.article p.step {
+      margin: 0 0 0.5em 1.5em; color: rgba(255,255,255,0.92);
+    }
+    .panel.article .back { margin-top: 3em; }
+
+    /* ---------- Outside gallery ---------- */
+    #panel-outside .inner {
+      max-width: 40rem; max-height: 100%; overflow-y: auto; padding-right: 0.6rem;
+    }
+    #panel-outside .inner::-webkit-scrollbar { width: 8px; }
+    #panel-outside .inner::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    .gallery { margin-top: 2.6em; display: grid; gap: 1.6em; }
+    .gallery figure { margin: 0; }
+    .gallery img {
+      width: 100%; height: auto; display: block;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .gallery figcaption {
+      margin-top: 0.6em; font-size: 0.72em; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(255,255,255,0.42);
+    }
+  </style>
+</head>
+<body>
+  <div id="scene"><pre id="ascii" aria-hidden="true"></pre></div>
+
+  <div id="namebox">
+    <div class="box">
+      <span class="c tl">&#9484;</span>
+      <span class="c tr">&#9488;</span>
+      <span class="c bl">&#9492;</span>
+      <span class="c br">&#9496;</span>
+      <span id="namelabel">Vince Huang</span>
+    </div>
+  </div>
+
+  <div id="hint">hover &amp; click the island &middot; the rock &middot; the clouds</div>
+
+  <div id="quote">
+    <p>Despite his new eyes, man was still rooted in matter, his soul spun into it and subordinated to its blind laws. And yet he could see matter as a stranger, compare himself to all phenomena, see through and locate his vital processes. He comes to nature as an unbidden guest, in vain extending his arms to beg conciliation with his maker: Nature answers no more, it performed a miracle with man, but later did not know him. He has lost his right of residence in the universe, has eaten from the Tree of Knowledge and been expelled from Paradise. He is mighty in the near world, but curses his might as purchased with his harmony of soul, his innocence, his inner peace in life&rsquo;s embrace.</p>
+    <p class="attr">&mdash; Peter Wessel Zapffe, The Last Messiah</p>
+  </div>
+
+  <!-- Content panels -->
+  <div class="panel" id="panel-about">
+    <div class="inner">
+      <div class="label">Mānana &middot; About</div>
+      <h1>Vince Huang</h1>
+      <div class="links">
+        <a href="https://www.linkedin.com/in/vincentjh/" target="_blank" rel="noopener noreferrer">linkedin</a>
+        <a href="https://x.com/vincejhuang" target="_blank" rel="noopener noreferrer">X</a>
+        <a href="mailto:hvincent@alumni.stanford.edu">email</a>
+      </div>
+      <span class="back" data-back>&larr; back</span>
+    </div>
+  </div>
+
+  <div class="panel article" id="panel-writing">
+    <div class="inner">
+      <div class="label">Kāohikaipu &middot; Writing</div>
+      <h1>Moral Philosophy is Only as Guilty of Reflective Equilibrium as Math</h1>
+      <div class="meta">May 2024</div>
+      <blockquote>The evolutionary debunking argument states that the project of moral philosophy relies on reflective equilibrium, which depends on our intuitions. But there’s little reason to believe that these intuitions map to objective moral truths: they emerged from psychological dispositions shaped by evolutionary pressures. Thus, moral theories built on reflective equilibrium (which includes all serious theories, according to Rawls) can’t claim to be objective.</blockquote>
+      <p>This reasoning holds, but it applies equally to math: a discipline widely considered the paragon of objective a priori knowledge.</p>
+      <h2>How Reflective Equilibrium Works</h2>
+      <p>Reflective equilibrium involves adjusting our general principles (or theories) to better fit our considered judgments (specific beliefs about particular cases), and vice versa. This iterative process is not merely an exercise in empirical analysis or logical deduction; it requires engaging with metaphysical modalities - the understanding of possibilities, necessities, and impossibilities beyond the actual world.</p>
+      <p>First, considering metaphysical modalities allows us to expand the scope of our reflection beyond immediate and empirical realities. When forming general principles, philosophers often ask questions like "Could there be a world where X is true?" or "Is it necessarily the case that Y follows from Z?". These questions prompt us to consider not just what is, but what could be, leading to a more robust and comprehensive set of principles.</p>
+      <p>Second, in evaluating specific judgments, reasoning about metaphysical modalities helps to test the limits and applicability of our beliefs. For example, when we consider a moral dilemma, we don't just think about what is morally right in this particular case; we also consider whether our judgment would hold in all possible worlds where the circumstances are slightly altered. This thought experiment ensures that our judgments are not merely reactive to specific situations but are grounded in principles that hold across various possible scenarios.</p>
+      <p>Put formally, a methodology central to reflective equilibrium takes this form:</p>
+      <p class="step">Propose a universal claim: ◻∀x. P(x) → Q(x)</p>
+      <p class="step">Consider a case where judgement leads to a different conclusion: ◇∃x. P(x) ∧ ¬Q(x)</p>
+      <p class="step">Either reject the universal claim, or shift your case judgement to accept the conclusion.</p>
+      <h2>Sidgwick's Dualism of Practical Reason</h2>
+      <p>In moral philosophy, even the most systematic analyses find that there are multiple conflicting intuitions at the foundation of ethics that can't be resolved internally.</p>
+      <p>In his Method of Ethics, Henry Sidgwick argues for utilitarianism by starting with a small set of principles known through intuition and reasons to arrive at utilitarianism. In fact, Sidgwick claims that Intuitionism is required to provide a rational basis for Utilitarianism by noting that certain moral maxims, such as the maxim of universal benevolence and the principle of rational prudence, are based on certain principles that are known through intuition.</p>
+      <p>However, Sidgwick importantly realized that two contradictory, yet equally rational, intuitive principles underpinned ethics: egoism and rational benevolence. To Sidgwick, this "dualism of practical reason" is unavoidable because utilitarianism and egoism are equally rational because both are based on irrefutable self-evident intuitions.</p>
+      <h2>Math Uses Reflective Equilibrium Too!</h2>
+      <p>Mathematics, widely considered the most objective a priori discipline,  also uses reflective equilibrium at its most fundamental levels when considering what axiomatic system to use.</p>
+      <p>For example, the axiom system of Frege's Logicism consisted of an intuitive set of axioms that seemingly provide a logical foundation for all of the mathematics based on the principles of set theory, faced disapproval on the grounds of intuitive judgments even before Russell's paradox exposed a blatant contradiction in it. For example, it implied the existence of sets of all conceivable kinds, including those that could contain themselves or sets of all sets, which did not align with the traditional mathematical intuition of what a set should be.</p>
+      <p>More recently, The Banach-Tarski Paradox, a result in set-theoretic geometry derived within the framework of Zermelo-Fraenkel set theory with the Axiom of Choice (ZFC), has been a source of contention. This paradox states that a solid ball in 3-dimensional space can be divided into a finite number of disjoint subsets, which can then be reassembled in a way to yield two identical copies of the original ball. While mathematically sound within ZFC, this conclusion defies conventional spatial and physical intuition, which can lead one to question aspects of ZFC, particularly the Axiom of Choice. Critics of ZFC argue that the ability to derive such counterintuitive outcomes challenges the philosophical and practical foundations of this axiom system, contending that an axiom system that allows for such paradoxical results might be too disconnected from the intuitive notions of space and volume, leading some to reject ZFC and propose alternative axiom systems, in the same way that a moral philosopher considering the repugnant conclusion may reject hedonistic utilitarianism or modify its core principles.</p>
+      <p>Both moral philosophy and meta-mathematics are guilty of reflective equilibrium. We encounter cases where fundamental intuitions conflict, leading to different axiom systems in mathematics or different ethical frameworks in philosophy. Yet we typically don't conclude that mathematical truth is merely relative.</p>
+      <span class="back" data-back>&larr; back</span>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-outside">
+    <div class="inner">
+      <div class="label">The Sky &middot; Outside</div>
+      <h1>Outside</h1>
+      <div class="gallery">
+        <figure>
+          <img src="IMG_7329_web.jpg" alt="A surfer kicking out of a wave at Diamond Head, O'ahu" loading="lazy" />
+          <figcaption>Kicking out of a wave at Diamond Head</figcaption>
+        </figure>
+        <figure>
+          <img src="VincentSelinaDrone1_web.jpg" alt="Aerial drone view over the reef with Selina at Ala Moana" loading="lazy" />
+          <figcaption>Over the reef with Selina in Ala Moana</figcaption>
+        </figure>
+      </div>
+      <span class="back" data-back>&larr; back</span>
+    </div>
+  </div>
+
+  <script src="ascii-data.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var data = window.ASCII_DATA;
+    if (!data) { console.error("ascii-data.js not loaded"); return; }
+
+    var COLS = data.cols, ROWS = data.rows;
+    var chars = data.chars, colors = data.colors, regions = data.regions;
+
+    // ---------- group cells into spans per row ----------
+    function buildSpans() {
+      var out = [];
+      for (var r = 0; r < ROWS; r++) {
+        var row = [], cur = null;
+        for (var c = 0; c < COLS; c++) {
+          var i = r * COLS + c;
+          var col = colors[i], reg = regions[i], ch = chars[i];
+          if (cur && cur.color === col && cur.region === reg) {
+            cur.text += ch;
+          } else {
+            if (cur) row.push(cur);
+            cur = { text: ch, color: col, region: reg };
+          }
+        }
+        if (cur) row.push(cur);
+        out.push(row);
+      }
+      return out;
+    }
+
+    var pre = document.getElementById("ascii");
+    var spanEls = { about: [], writing: [], outside: [] };
+    var LABELS = { about: "ABOUT ", writing: "WRITING ", outside: "OUTSIDE " };
+
+    (function render() {
+      var spanRows = buildSpans();
+      var frag = document.createDocumentFragment();
+      for (var r = 0; r < spanRows.length; r++) {
+        var rowDiv = document.createElement("div");
+        rowDiv.className = "row";
+        var row = spanRows[r];
+        for (var s = 0; s < row.length; s++) {
+          var sp = row[s];
+          var el = document.createElement("span");
+          el.textContent = sp.text;
+          el.dataset.base = sp.text;
+          if (sp.color) el.style.color = sp.color;
+          if (sp.region) {
+            el.className = "hot";
+            el.dataset.region = sp.region;
+            el.dataset.basecolor = sp.color || "#ffffff";
+            spanEls[sp.region].push(el);
+            el.addEventListener("mouseenter", onEnter);
+            el.addEventListener("mouseleave", onLeave);
+            el.addEventListener("click", onClick);
+          }
+          rowDiv.appendChild(el);
+        }
+        frag.appendChild(rowDiv);
+      }
+      pre.appendChild(frag);
+    })();
+
+    // ---------- interaction ----------
+    var nameLabel = document.getElementById("namelabel");
+    var DEFAULT_NAME = "Vince Huang";
+
+    function highlight(region) {
+      var els = spanEls[region], label = LABELS[region], offset = 0;
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i], len = el.dataset.base.length, tiled = "";
+        for (var k = 0; k < len; k++) tiled += label[(offset + k) % label.length];
+        offset += len;
+        el.textContent = tiled;
+        el.style.color = "#ffffff";
+      }
+    }
+    function unhighlight(region) {
+      var els = spanEls[region];
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i];
+        el.textContent = el.dataset.base;
+        el.style.color = el.dataset.basecolor;
+      }
+    }
+    function onEnter(e) {
+      var region = e.currentTarget.dataset.region;
+      highlight(region);
+      nameLabel.textContent = region.charAt(0).toUpperCase() + region.slice(1);
+    }
+    function onLeave(e) {
+      var region = e.currentTarget.dataset.region;
+      unhighlight(region);
+      nameLabel.textContent = DEFAULT_NAME;
+    }
+    function onClick(e) { openPanel(e.currentTarget.dataset.region); }
+
+    // ---------- panels ----------
+    function openPanel(region) {
+      var p = document.getElementById("panel-" + region);
+      if (p) p.classList.add("open");
+    }
+    function closePanels() {
+      var ps = document.querySelectorAll(".panel.open");
+      for (var i = 0; i < ps.length; i++) ps[i].classList.remove("open");
+    }
+    var backs = document.querySelectorAll("[data-back]");
+    for (var b = 0; b < backs.length; b++) backs[b].addEventListener("click", closePanels);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePanels(); });
+  })();
+  </script>
+</body>
+</html>
