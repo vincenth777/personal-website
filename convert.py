@@ -156,13 +156,11 @@ def main():
             regions[i] = "outside"
             sky_count += 1
 
-    # ---- favorites -> only the DARK parts of the water (deep-blue cells) ----
-    HORIZON = int(rows * 0.5)
-    FAV_MAX_LUM = 62   # cells darker than this count as deep water
+    # ---- favorites -> the bottom half of the water (a solid band) ----
+    FAV_TOP = int(rows * 0.72)   # roughly the lower half of the ocean
     fav_count = 0
     for i in range(n):
-        if (regions[i] is None and chars[i] != " "
-                and (i // COLS) >= HORIZON and lum_map[i] < FAV_MAX_LUM):
+        if regions[i] is None and chars[i] != " " and (i // COLS) >= FAV_TOP:
             regions[i] = "favorites"
             fav_count += 1
 
