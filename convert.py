@@ -6,6 +6,7 @@ each cell gets a character (by brightness) and keeps its true color.
 Distinct scene objects become clickable nav regions.
 """
 import json
+import math
 from collections import deque
 from PIL import Image
 
@@ -156,11 +157,22 @@ def main():
             regions[i] = "outside"
             sky_count += 1
 
-    # ---- favorites -> the bottom half of the water (a solid band) ----
-    FAV_TOP = int(rows * 0.72)   # roughly the lower half of the ocean
+    # ---- favorites -> a jagged 45-degree wedge in the bottom-left water ----
+    # The diagonal meets the left edge at FAV_APEX and opens down-right. Cells
+    # are CHAR_ASPECT times taller than wide, so advancing CHAR_ASPECT columns
+    # per row is a true 45 degrees on screen. A little sine jitter keeps the
+    # edge jagged/wave-bitten rather than a ruled line.
+    FAV_APEX = int(rows * 0.55)
     fav_count = 0
     for i in range(n):
-        if regions[i] is None and chars[i] != " " and (i // COLS) >= FAV_TOP:
+        if regions[i] is not None or chars[i] == " ":
+            continue
+        y, x = divmod(i, COLS)
+        if y < FAV_APEX:
+            continue
+        edge = (y - FAV_APEX) * CHAR_ASPECT
+        edge += 3.5 * math.sin(y * 1.7) + 2.0 * math.sin(y * 0.6 + 1.3)
+        if x <= edge:
             regions[i] = "favorites"
             fav_count += 1
 

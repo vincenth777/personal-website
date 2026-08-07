@@ -43,13 +43,18 @@
       top: 4vh;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 50;
+      z-index: 200;          /* above the panels, so it doubles as "back" */
       font-size: clamp(11px, 1.4vw, 15px);
       text-transform: uppercase;
       letter-spacing: 0.14em;
       pointer-events: none;
     }
     #namebox .box { position: relative; border: 1px solid #fff; padding: 10px 22px; white-space: nowrap; }
+    /* while a panel is open the name box becomes the back button */
+    body.panel-open #namebox { pointer-events: auto; cursor: pointer; }
+    body.panel-open #namebox .box { color: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.75); }
+    body.panel-open #namebox .box::before { content: "\2190\00a0\00a0"; }
+    body.panel-open #namebox:hover .box { color: #fff; border-color: #fff; }
     #namebox .c { position: absolute; background: #000; padding: 0 3px; line-height: 1; }
     #namebox .tl { top: -0.7em; left: -0.5em; }
     #namebox .tr { top: -0.7em; right: -0.5em; }
@@ -84,7 +89,8 @@
     .panel {
       position: fixed; inset: 0; z-index: 100; background: #000;
       display: flex; align-items: center; justify-content: center;
-      padding: 6vh 6vw; opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
+      padding: 15vh 6vw 6vh;   /* top clearance for the name box / back button */
+      opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
     }
     .panel.open { opacity: 1; visibility: visible; }
     .panel .inner {
@@ -435,9 +441,15 @@
     function onClick(e) { openPanel(e.currentTarget.dataset.region); }
 
     // ---------- panels ----------
+    // body.panel-open drives the name box turning into a back button
+    function syncPanelState() {
+      var anyOpen = document.querySelectorAll(".panel.open").length > 0;
+      document.body.classList.toggle("panel-open", anyOpen);
+    }
     function openPanel(name) {
       var p = document.getElementById("panel-" + name);
       if (p) p.classList.add("open");
+      syncPanelState();
     }
     function closeTopmost() {
       var ps = document.querySelectorAll(".panel.open");
@@ -447,6 +459,7 @@
         if (pz >= z) { z = pz; top = ps[i]; }
       }
       if (top) top.classList.remove("open");
+      syncPanelState();
     }
     // "back" closes only its own panel (essay -> back reveals the writing list)
     var backs = document.querySelectorAll("[data-back]");
@@ -454,8 +467,13 @@
       backs[b].addEventListener("click", function (e) {
         var panel = e.currentTarget.closest(".panel");
         if (panel) panel.classList.remove("open");
+        syncPanelState();
       });
     }
+    // the name box at the top doubles as back while any panel is open
+    document.getElementById("namebox").addEventListener("click", function () {
+      if (document.body.classList.contains("panel-open")) closeTopmost();
+    });
     // a titled entry opens the panel named in its data-open
     var opens = document.querySelectorAll("[data-open]");
     for (var o = 0; o < opens.length; o++) {
